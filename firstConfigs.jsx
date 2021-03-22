@@ -1,93 +1,24 @@
-// Code 01 - The React.Component class
-
-class ShoppingList extends React.Component {
-    render() {
-        return (
-            <div className="shopping-list">
-                <h1>Shopping List for {this.props.name}</h1>
-                <ul>
-                    <li>Instagram</li>
-                    <li>Facebook</li>
-                    <li>nVidia</li>
-                </ul>
-            </div>
-        );
-    }
-}
-
-
-// Code 02 - React.createElement
-
-return React.createElement('div', { className: 'shopping-list' },
-    React.createElement('h1', /* ... This is the H1 children */),
-    React.createElement('ul', /* ... This is the UL children */)
-);
-
-
-// Code03 - TicTacToe (HTML code)
-
-<div id="errors" style="
-    background: #c00;
-    color: #FFF;
-    display: none;
-    margin: -20px -20px 20px;
-    padding: 20px;
-    white-space: pre-wrap;"></div>
-    <div id="root"></div>
-    <script>
-        window.addEventListener('mousedown',function(e){
-            document.body.classList.add('mouse-navigation');
-            document.body.classList.remove('kbd-navigation');
-        });
-        window.addEventListener('keydown',function(e){
-            if(e.keyCode === 9){
-                document.body.classList.add('kbd-navigation');
-                document.body.classList.remove('mouse-navigation');
-            }
-        });
-        window.addEventListener('click', function(e){
-            if(e.target.tagName === 'A' && e.target.getAttribute('href') === '#'){
-                else.preventDefault();
-            }
-        });
-        window.onerror = function(message, source, line, col, error){
-            var text = error ? error.stack || error: message + ' (at ' + source + ':' + line + ':'+ col + ')';
-            errors.textContent += text + '\n';
-            errors.style.display = '';
-        };
-        console.error = (function(old){
-            return function error(){
-                errors.textContent += Array.prototype.slice.call(arguments).join('')+ '\n';
-                errors.style.display = '';
-                old.apply(this, arguments);
-            }
-        })(console.error);
-    </script>
-
-
-// Code 04 - TicTacToe (JS code)
-
-class Square extends React.Component {
-    render() {
-        return (
-            <button className="square">
-                {this.props.value}
-            </button>
-        );
-    }
+function Square(props) {
+    return (
+        <button className="square" onClick={props.onClick}>
+            {props.value}
+        </button>
+    );
 }
 
 class Board extends React.Component {
     renderSquare(i) {
-        return <Square value={i} />;
+        return (
+            <Square
+                value={this.props.squares[i]}
+                onClick={() => this.props.onClick(i)}
+            />
+        );
     }
 
     render() {
-        const status = 'Next player: X';
-
         return (
             <div>
-                <div className="status">{status}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -109,44 +40,103 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            history: [
+                {
+                    squares: Array(9).fill(null)
+                }
+            ],
+            stepNumber: 0,
+            xIsNext: true
+        };
+    }
+
+    handleClick(i) {
+        const history = this.state.history.slice(0, this.state.stepNumber + 1);
+        const current = history[history.length - 1];
+        const squares = current.squares.slice();
+        if (calculateWinner(squares) || squares[i]) {
+            return;
+        }
+
+        squares[i] = this.state.xIsNext ? "X" : "O";
+        this.setState({
+            history: history.concat([
+                {
+                    squares: squares
+                }
+            ]),
+            setNumber: history.length,
+            xIsNext: !this.state.xIsNext
+        });
+    }
+
+    jumpTo(step) {
+        this.setState({
+            stepNumber: step,
+            xIsNext: (step % 2) === 0
+        });
+    }
+
     render() {
+        const history = this.state.history;
+        const current = history[this.state.stepNumber];
+        const winner = calculateWinner(current.squares);
+
+        const moves = history.map((step, move) => {
+            const desc = move ? 'Go to move #' + move : 'Go to game start';
+            return (
+                <li key={move}>
+                    <button onClick={() => this.jumpTo(move)}>{desc}</button>
+                </li>
+            );
+        });
+
+        let status;
+        if (winner) {
+            status = "Winer = " + winner;
+        } else {
+            status = "Next player = " + (this.state.xIsNext ? "X" : "O");
+        }
+
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board />
+                    <Board
+                        squares={current.squares}
+                        onClick={i => this.handleClick(i)}
+                    />
                 </div>
                 <div className="game-info">
-                    <div>{/* Status*/}</div>
-                    <ol>{/* ToDo */}</ol>
+                    <div>{status}</div>
+                    <ol>{moves}</ol>
                 </div>
-            </div>
         );
-    }
-}
+     }
+  }
 
-// =============================================
+  //  =============================================
 
-ReactDOM.render(
-    <Game />,
-    document.getElementById('root')
-);
+  ReactDOM.render(<Game />, document.getElementById("root"));
 
-
-/* Code 05 - Data change with mutation
-
-var player = { score: 1, name: 'Scott' };
-player.score = 2;
-// Player data = {score: 2, name: 'Scott'}
-
-
-// Code 06 - Data change without mutation
-
-var player = { score: 1, name: 'Markus' };
-
-var newPlayer = Object.assign({}, player, { score: 2 });
-// Player = unchanged. newPlayer = {score: 2, name: 'Markus'}
-
-// OR this can be used =
-// var newPlayer = {...player, score: 2};
-
-*/
+  function calculateWinner(squares){
+            const lines = [
+              [0,1,2],
+              [3,4,5],
+              [6,7,8],
+              [0,3,6],
+              [1,4,7],
+              [2,5,8],
+              [0,4,8],
+              [2,4,6]
+            ];
+            for(let i=0;i<lines.length; {
+              const [a,b,c] = lines[i];
+              if(squares[a] && squares[a] === squares[b] && squares[a] === squares[c]){
+                return squares[a];
+              }
+            }
+            return null;
+          }
